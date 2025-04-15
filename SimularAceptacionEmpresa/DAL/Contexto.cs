@@ -8,6 +8,8 @@ public class Contexto : DbContext
     public DbSet<Ingresos> Ingresos { get; set; }
     public DbSet<Recursos> Recursos { get; set; }
     public DbSet<Actividades> Actividades { get; set; }
+
+    public DbSet<Empresas> Empresas { get; set; }
     public Contexto(DbContextOptions<Contexto> options) : base(options)
     {
     }
