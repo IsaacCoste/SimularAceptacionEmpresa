@@ -18,7 +18,10 @@ namespace SimularAceptacionEmpresa.Service
         {
             return await _contexto.Ingresos.AnyAsync(i => i.IngresoId == IngresoId);
         }
-
+        public async Task<bool> Existe(int IngresoId, string? Tipo)
+        {
+            return await _contexto.Ingresos.AnyAsync(i => i.IngresoId != IngresoId && i.Tipo.Equals(Tipo));
+        }
         public async Task<bool> Insertar(Ingresos ingreso)
         {
             _contexto.Ingresos.Add(ingreso);

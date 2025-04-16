@@ -1,0 +1,112 @@
+﻿@page "/actividades/create"
+@inject ActividadService actividadService
+@inject EmpresaService empresaService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<EditForm Model="Actividad" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="card">
+        <div class="card-header bg-warning text-center">
+            <h1>Crear Actividad</h1>
+        </div>
+        <div class="card-body">
+
+            <div class="row">
+                <div class="col-md-4">
+                    <label>ID:</label>
+                    <InputText @bind-Value="Actividad.ActividadId" class="form-control" readonly />
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-md">
+                    <label>Nombre Actividad:</label>
+                    <InputText @bind-Value="Actividad.Nombre" class="form-control" />
+                    <ValidationMessage For="@(() => Actividad.Nombre)" />
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-md">
+                    <label>Valoración:</label>
+                    <InputNumber @bind-Value="Actividad.valoracion" class="form-control" />
+                    <ValidationMessage For="@(() => Actividad.valoracion)" />
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-md">
+                    <label>Empresa:</label>
+                    <InputSelect @bind-Value="Actividad.EmpresaId" class="form-control">
+                        <option value="">-- Seleccionar Empresa --</option>
+                        @foreach (var empresa in ListEmpresas)
+                        {
+                            <option value="@empresa.EmpresaId">@empresa.Nombre</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="@(() => Actividad.EmpresaId)" />
+                </div>
+            </div>
+
+            <div class="card-footer text-center mt-4">
+                <button type="button" class="btn btn-outline-primary ml-2" @onclick="Nuevo">
+                    <span class="bi bi-plus"></span> Nuevo
+                </button>
+                <button type="submit" class="btn btn-success">
+                    Guardar <i class="bi bi-floppy-fill"></i>
+                </button>
+                <button type="button" class="btn btn-outline-primary" @onclick="Volver">
+                    Volver <i class="bi bi-arrow-return-left"></i>
+                </button>
+            </div>
+
+            <p class="text-center text-success mt-3">@Notification</p>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    public Actividades Actividad { get; set; } = new Actividades();
+    private bool HayActividad = false;
+    public List<Empresas> ListEmpresas { get; set; } = new();
+
+    public string Notification { get; set; } = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ListEmpresas = await empresaService.Listar(e => true);
+    }
+
+    private async Task<bool> Validar()
+    {
+        HayActividad = await actividadService.Existe(Actividad.ActividadId, Actividad.Nombre);
+        return !HayActividad;
+    }
+
+    private async Task Guardar()
+    {
+        if (!await Validar())
+        {
+            Notification = "Ya existe una actividad con este nombre.";
+            return;
+        }
+
+        var guardo = await actividadService.Guardar(Actividad);
+        Notification = guardo ? "Se guardó la actividad correctamente." : "Error al guardar la actividad.";
+    }
+
+    private void Volver()
+    {
+        NavigationManager.NavigateTo("/actividades/index");
+    }
+
+    private void Nuevo()
+    {
+        Actividad = new Actividades();
+        HayActividad = false;
+        Notification = string.Empty;
+    }
+}

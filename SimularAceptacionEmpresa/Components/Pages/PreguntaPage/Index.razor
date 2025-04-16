@@ -1,0 +1,175 @@
+﻿@page "/preguntas/index"
+@rendermode InteractiveServer
+@inject PreguntaService preguntasService
+@inject NavigationManager navigation
+
+<PageTitle>Preguntas</PageTitle>
+
+<div class="container">
+	<div class="card shadow-lg">
+		<!-- Header -->
+		<div class="card-header d-flex justify-content-between align-items-center">
+			<h3><strong>Preguntas</strong></h3>
+			<button type="button" class="btn btn-outline-primary" @onclick="IrACrear">
+				<i class="bi bi-plus-circle" /> Crear
+			</button>
+		</div>
+
+		<!-- Body -->
+		<div class="card-body">
+			@if (loading)
+			{
+				<div class="d-flex justify-content-center">
+					<div class="spinner-border text-info"></div>
+				</div>
+			}
+			else if (preguntas.Count == 0)
+			{
+				<h1 class="miMensaje"><i class="bi bi-exclamation-triangle" /> No hay preguntas registradas</h1>
+			}
+			else
+			{
+				<!-- Filtro -->
+				<div class="mb-3">
+					<div class="row align-items-center">
+						<label class="form-label" for="filtro"><strong>Campo a Filtrar:</strong></label>
+						<div class="col-3">
+							<InputSelect id="filtro" class="form-select" @bind-Value="filtro">
+								<option selected disabled>Elije una opción</option>
+								<option value="id">Id</option>
+								<option value="texto">Texto</option>
+							</InputSelect>
+						</div>
+						<div class="col-auto miFlecha">
+							<p>→</p>
+						</div>
+						<div class="col-4">
+							<div class="input-group">
+								<InputText class="form-control" @bind-Value="valorFiltro" placeholder="Ingrese un dato para filtrar"></InputText>
+								<button type="button" class="btn btn-outline-primary" @onclick="Buscar">
+									<i class="bi bi-search" />
+								</button>
+							</div>
+						</div>
+						<div class="col-3">
+							<button type="button" class="btn btn-outline-secondary" @onclick="Restablecer">
+								<i class="bi bi-arrow-clockwise" /> Restablecer
+							</button>
+						</div>
+					</div>
+				</div>
+
+				<!-- Tabla -->
+				<table class="table table-bordered miTabla">
+					<thead>
+						<tr>
+							<th>PreguntaId</th>
+							<th>Texto</th>
+							<th>Respuestas</th>
+							<th>Acciones</th>
+						</tr>
+					</thead>
+					<tbody>
+						@foreach (var pregunta in preguntas)
+						{
+							<tr>
+								<td>@pregunta.PreguntaId</td>
+								<td>@pregunta.Texto</td>
+								<td>
+									@foreach (var detalle in pregunta.PreguntasDetalle)
+									{
+										<div>- @detalle.Respuesta (@detalle.Valoracion)</div>
+									}
+								</td>
+								<td>
+									<div class="btn-group" role="group">
+										<button type="button" class="btn btn-outline-info" @onclick="() => IrADetalles(pregunta.PreguntaId)">
+											<i class="bi bi-eye"></i>
+										</button>
+										<button type="button" class="btn btn-outline-warning" @onclick="() => IrAEditar(pregunta.PreguntaId)">
+											<i class="bi bi-pencil-square"></i>
+										</button>
+										<button type="button" class="btn btn-outline-danger" @onclick="() => IrAEliminar(pregunta.PreguntaId)">
+											<i class="bi bi-trash3-fill"></i>
+										</button>
+									</div>
+								</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			}
+		</div>
+
+		<!-- Footer -->
+		<div class="card-footer">
+			<p><strong>Total de Preguntas:</strong> @preguntas.Count</p>
+		</div>
+	</div>
+</div>
+
+@code {
+	private List<Preguntas> preguntas = new();
+	private string filtro { get; set; } = string.Empty;
+	private string valorFiltro { get; set; } = string.Empty;
+	private string mensaje { get; set; } = string.Empty;
+	private bool loading { get; set; } = true;
+
+	protected override async Task OnInitializedAsync()
+	{
+		await Task.Delay(500); // para simular carga
+		preguntas = await preguntasService.Listar(p => true);
+		loading = false;
+
+		if (preguntas.Count == 0)
+			StateHasChanged();
+	}
+
+	private async Task Buscar()
+	{
+		var todas = await preguntasService.Listar(p => true);
+		List<Preguntas> resultado = new();
+
+		switch (filtro)
+		{
+			case "id":
+				if (int.TryParse(valorFiltro, out int id))
+					resultado = todas.Where(p => p.PreguntaId == id).ToList();
+				break;
+
+			case "texto":
+				resultado = todas.Where(p => p.Texto.Contains(valorFiltro, StringComparison.OrdinalIgnoreCase)).ToList();
+				break;
+		}
+
+		preguntas = resultado;
+		mensaje = preguntas.Count == 0 ? "No se encontraron preguntas con el filtro especificado." : string.Empty;
+	}
+
+	private async Task Restablecer()
+	{
+		preguntas = await preguntasService.Listar(p => true);
+		valorFiltro = string.Empty;
+		filtro = string.Empty;
+	}
+
+	private void IrACrear()
+	{
+		navigation.NavigateTo("/CreatePreguntas");
+	}
+
+	private void IrADetalles(int id)
+	{
+		navigation.NavigateTo($"/ViewPreguntas/preguntaId={id}");
+	}
+
+	private void IrAEditar(int id)
+	{
+		navigation.NavigateTo($"/EditPreguntas/preguntaId={id}");
+	}
+
+	private void IrAEliminar(int id)
+	{
+		navigation.NavigateTo($"/DeletePreguntas/preguntaId={id}");
+	}
+}

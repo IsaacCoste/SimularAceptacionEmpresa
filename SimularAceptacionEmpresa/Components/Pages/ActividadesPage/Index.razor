@@ -1,0 +1,130 @@
+﻿@page "/actividades/index"
+
+@inject ActividadService actividadService
+@inject NavigationManager navigation
+@rendermode InteractiveServer
+
+<PageTitle>Index Actividades</PageTitle>
+
+<div class="card">
+    <div class="card-header bg-info text-center">
+        <h1>Lista de Actividades</h1>
+    </div>
+    <div class="card-body">
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <label for="filtro" class="form-label"><strong>Filtrar por:</strong></label>
+                <InputSelect id="filtro" class="form-select" @bind-Value="filtro">
+                    <option value="" disabled>Seleccionar</option>
+                    <option value="Id">ActividadId</option>
+                    <option value="Nombre">Nombre</option>
+                </InputSelect>
+            </div>
+            <div class="col-md-6">
+                <label for="valorFiltro" class="form-label"><strong>Búsqueda:</strong></label>
+                <div class="input-group">
+                    <input @bind="valorFiltro" class="form-control" placeholder="Buscar" />
+                    <button @onclick="Buscar" class="btn btn-primary" type="button">
+                        <span class="bi bi-search"></span> Buscar
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-3 d-flex align-items-end justify-content-end">
+                <button class="btn btn-success" @onclick="Crear">Crear</button>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <table class="table table-bordered miTabla">
+                <thead>
+                    <tr>
+                        <th>ActividadId</th>
+                        <th>Nombre</th>
+                        <th>Valoración</th>
+                        <th>EmpresaId</th>
+                        <th>Editar</th>
+                        <th>Eliminar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (ListActividades.Any())
+                    {
+                        @foreach (var actividad in ListActividades)
+                        {
+                            <tr>
+                                <td>@actividad.ActividadId</td>
+                                <td>@actividad.Nombre</td>
+                                <td>@actividad.valoracion</td>
+                                <td>@actividad.EmpresaId</td>
+                                <td>
+                                    <button class="btn btn-outline-warning" @onclick="() => Editar(actividad.ActividadId)" title="Editar">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
+                                </td>
+                                <td>
+                                    <button class="btn btn-outline-danger" @onclick="() => Eliminar(actividad.ActividadId)" title="Eliminar">
+                                        <i class="bi bi-trash3-fill"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center">No hay actividades disponibles</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer">
+        <p><strong>Total de Actividades:</strong> @ListActividades.Count</p>
+    </div>
+</div>
+
+@code {
+    private List<Actividades> ListActividades { get; set; } = new();
+    private string filtro = "";
+    private string valorFiltro = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        ListActividades = await actividadService.Listar(a => true);
+    }
+
+    private async Task Buscar()
+    {
+        if (!string.IsNullOrWhiteSpace(valorFiltro))
+        {
+            if (filtro == "Id")
+            {
+                ListActividades = await actividadService.Listar(a => a.ActividadId.ToLower().Contains(valorFiltro.ToLower()));
+            }
+            else if (filtro == "Nombre")
+            {
+                ListActividades = await actividadService.Listar(a => a.Nombre.ToLower().Contains(valorFiltro.ToLower()));
+            }
+        }
+        else
+        {
+            ListActividades = await actividadService.Listar(a => true);
+        }
+    }
+
+    private void Crear()
+    {
+        navigation.NavigateTo("/actividades/create");
+    }
+
+    private void Editar(string id)
+    {
+        navigation.NavigateTo($"/actividades/edit/{id}");
+    }
+
+    private void Eliminar(string id)
+    {
+        navigation.NavigateTo($"/actividades/delete/{id}");
+    }
+}

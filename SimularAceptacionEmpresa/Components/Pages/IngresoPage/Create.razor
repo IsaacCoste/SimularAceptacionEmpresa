@@ -1,0 +1,82 @@
+﻿@page "/ingresos/create"
+@inject IngresoService ingresoService
+@inject EmpresaService empresaService
+@rendermode InteractiveServer
+@inject NavigationManager NavigationManager
+
+<EditForm Model="Ingreso" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+    <div class="card">
+        <div class="card-header bg-success text-center text-white">
+            <h1>Crear Ingreso</h1>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label>ID:</label>
+                    <InputNumber @bind-Value="Ingreso.IngresoId" class="form-control" readonly />
+                </div>
+                
+            </div>
+
+            <div class="row mb-3">
+
+                <div class="col-md-6">
+                    <label>Tipo:</label>
+                    <InputText @bind-Value="Ingreso.Tipo" class="form-control" />
+                    <ValidationMessage For="@(() => Ingreso.Tipo)" />
+                </div>
+            </div>
+
+            <div class="card-footer text-center">
+                <button type="button" class="btn btn-outline-primary ml-2" @onclick="Nuevo">
+                    <span class="bi bi-plus"></span> Nuevo
+                </button>
+                <button type="submit" class="btn btn-success">
+                    Guardar <i class="bi bi-floppy-fill" />
+                </button>
+                <button type="button" class="btn btn-outline-primary" @onclick="Volver">
+                    Volver <i class="bi bi-arrow-return-left" />
+                </button>
+            </div>
+            <p class="mt-2">@Notification</p>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    public Ingresos Ingreso { get; set; } = new Ingresos();
+    public List<Empresas> Empresas { get; set; } = new();
+    public string Notification { get; set; } = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Empresas = await empresaService.Listar(e => true);
+    }
+
+    public async Task Guardar()
+    {
+        var guardo = await ingresoService.Guardar(Ingreso);
+        if (guardo)
+        {
+            Notification = "Se guardó el ingreso correctamente.";
+        }
+        else
+        {
+            Notification = "Ocurrió un error al guardar el ingreso.";
+        }
+    }
+
+    public Task Volver()
+    {
+        NavigationManager.NavigateTo("/ingresos/index");
+        return Task.CompletedTask;
+    }
+
+    public Task Nuevo()
+    {
+        Ingreso = new Ingresos();
+        Notification = string.Empty;
+        return Task.CompletedTask;
+    }
+}

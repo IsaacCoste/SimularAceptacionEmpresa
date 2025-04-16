@@ -10,5 +10,4 @@ public class Actividades
     public int valoracion { get; set; } // Ej: 1-10
     [ForeignKey("Empresas")]
     public int EmpresaId { get; set; } // ID de la empresa a la que pertenece la actividad
-
 }

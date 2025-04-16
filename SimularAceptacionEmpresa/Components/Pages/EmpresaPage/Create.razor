@@ -1,0 +1,88 @@
+﻿@page "/empresas/create"
+@inject EmpresaService empresaService
+@rendermode InteractiveServer
+@inject NavigationManager NavigationManager
+
+<EditForm Model="Empresa" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+    <div class="card">
+        <div class="card-header bg-warning text-center">
+            <h1>Crear Empresa</h1>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <label>ID:</label>
+                    <div class="input-group">
+                        <InputNumber @bind-Value="Empresa.EmpresaId" class="form-control" readonly />
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md">
+                    <label>Nombre:</label>
+                    <InputText @bind-Value="Empresa.Nombre" class="form-control" />
+                    <ValidationMessage For="@(() => Empresa.Nombre)" />
+                </div>
+            </div>
+            <br />
+            <div class="card-footer text-center">
+                <button type="button" class="btn btn-outline-primary ml-2" @onclick="Nuevo">
+                    <span class="bi bi-plus"></span> Nuevo
+                </button>
+                <button type="submit" class="btn btn-success">
+                    Guardar <i class="bi bi-floppy-fill" />
+                </button>
+                <button type="button" class="btn btn-outline-primary" @onclick="Volver">
+                    Volver <i class="bi bi-arrow-return-left" />
+                </button>
+            </div>
+        </div>
+        <p>@Notification</p>
+    </div>
+</EditForm>
+
+@code {
+    public Empresas Empresa { get; set; } = new Empresas();
+    private bool HayEmpresa = false;
+    public string Notification { get; set; } = string.Empty;
+
+    public async Task<bool> Validar()
+    {
+        HayEmpresa = await empresaService.Existe(Empresa.EmpresaId, Empresa.Nombre);
+        return !HayEmpresa;
+    }
+
+    public async Task Guardar()
+    {
+        if (!await Validar())
+        {
+            Notification = "Ya existe una empresa con este nombre.";
+            return;
+        }
+
+        var guardo = await empresaService.Guardar(Empresa);
+        if (guardo)
+        {
+            Notification = "Se guardaron los datos correctamente.";
+        }
+        else
+        {
+            Notification = "Ocurrió un error al guardar los datos.";
+        }
+    }
+
+    public Task Volver()
+    {
+        NavigationManager.NavigateTo("/empresas/index");
+        return Task.CompletedTask;
+    }
+
+    public Task Nuevo()
+    {
+        Empresa = new Empresas();
+        HayEmpresa = false;
+        Notification = string.Empty;
+        return Task.CompletedTask;
+    }
+}

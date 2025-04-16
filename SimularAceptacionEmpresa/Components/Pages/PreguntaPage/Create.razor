@@ -1,0 +1,102 @@
+﻿@page "/CreatePreguntas"
+@rendermode InteractiveServer
+@inject NavigationManager navigation
+@inject PreguntaService preguntasService
+
+<PageTitle>Crear Nueva Pregunta</PageTitle>
+
+<EditForm Model="pregunta" OnValidSubmit="Crear">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="container">
+        <div class="card shadow-lg">
+            <div class="card-header">
+                <h3 class="text-center"><strong>Crear Nueva Pregunta</strong></h3>
+            </div>
+
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <label class="form-label"><strong>Pregunta:</strong></label>
+                        <InputTextArea class="form-control" @bind-Value="pregunta.Texto" placeholder="Ej: ¿Qué tan satisfecho estás con el servicio?" />
+                        <ValidationMessage For="@(() => pregunta.Texto)" />
+                    </div>
+                </div>
+
+                <hr />
+                <h5><strong>Opciones de Respuesta</strong></h5>
+
+                @foreach (var detalle in detalles)
+                {
+                    <div class="row mb-2 align-items-center">
+                        <div class="col-md-7">
+                            <InputText class="form-control" placeholder="Texto de la respuesta" @bind-Value="detalle.Respuesta" />
+                        </div>
+                        <div class="col-md-3">
+                            <InputNumber class="form-control" @bind-Value="detalle.Valoracion" min="1" max="10" placeholder="Valoración (1-10)" />
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button" class="btn btn-danger" @onclick="@(() => EliminarDetalle(detalle))">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                }
+
+                <div class="row mb-3">
+                    <div class="col">
+                        <button type="button" class="btn btn-outline-primary" @onclick="AgregarDetalle">
+                            <i class="bi bi-plus-circle" /> Agregar Opción
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-footer d-flex justify-content-center">
+                <button type="button" class="btn btn-outline-secondary mx-2" @onclick="Volver">
+                    <i class="bi bi-box-arrow-left" /> Volver
+                </button>
+                <button type="submit" class="btn btn-outline-success">
+                    <i class="bi bi-floppy-fill" /> Crear
+                </button>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    private Preguntas pregunta { get; set; } = new();
+    private List<PreguntasDetalle> detalles { get; set; } = new();
+
+    protected override void OnInitialized()
+    {
+        AgregarDetalle(); // Al menos una opción al iniciar
+    }
+
+    private void AgregarDetalle()
+    {
+        detalles.Add(new PreguntasDetalle());
+    }
+
+    private void EliminarDetalle(PreguntasDetalle detalle)
+    {
+        detalles.Remove(detalle);
+    }
+
+    private async Task Crear()
+    {
+        if (string.IsNullOrWhiteSpace(pregunta.Texto) || !detalles.Any())
+            return;
+
+        pregunta.PreguntasDetalle = detalles;
+        await preguntasService.Guardar(pregunta); // Guarda la pregunta y sus detalles
+
+        Volver();
+    }
+
+    private void Volver()
+    {
+        navigation.NavigateTo("/preguntas/index");
+    }
+}

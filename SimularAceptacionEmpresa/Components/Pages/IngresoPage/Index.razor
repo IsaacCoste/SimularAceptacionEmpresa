@@ -1,0 +1,126 @@
+﻿@page "/ingresos/index"
+
+@inject IngresoService ingresoService
+@inject NavigationManager navigation
+@rendermode InteractiveServer
+
+<PageTitle>Index Ingresos</PageTitle>
+
+<div class="card">
+    <div class="card-header bg-info text-center">
+        <h1>Lista de Ingresos</h1>
+    </div>
+    <div class="card-body">
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <label for="filtro" class="form-label"><strong>Filtrar por:</strong></label>
+                <InputSelect id="filtro" class="form-select" @bind-Value="filtro">
+                    <option value="" disabled>Seleccionar</option>
+                    <option value="Id">IngresoId</option>
+                    <option value="Tipo">Tipo</option>
+                </InputSelect>
+            </div>
+            <div class="col-md-6">
+                <label for="valorFiltro" class="form-label"><strong>Búsqueda:</strong></label>
+                <div class="input-group">
+                    <input @bind="valorFiltro" class="form-control" placeholder="Buscar" />
+                    <button @onclick="Buscar" class="btn btn-primary" type="button">
+                        <span class="bi bi-search"></span> Buscar
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-3 d-flex align-items-end justify-content-end">
+                <button class="btn btn-success" @onclick="Crear">Crear</button>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <table class="table table-bordered miTabla">
+                <thead>
+                    <tr>
+                        <th>IngresoId</th>
+                        <th>Tipo</th>
+                        <th>Editar</th>
+                        <th>Eliminar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (ListIngresos.Any())
+                    {
+                        @foreach (var ingreso in ListIngresos)
+                        {
+                            <tr>
+                                <td>@ingreso.IngresoId</td>
+                                <td>@ingreso.Tipo</td>
+                                <td>
+                                    <button class="btn btn-outline-warning" @onclick="() => Editar(ingreso.IngresoId)" title="Editar">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
+                                </td>
+                                <td>
+                                    <button class="btn btn-outline-danger" @onclick="() => Eliminar(ingreso.IngresoId)" title="Eliminar">
+                                        <i class="bi bi-trash3-fill"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center">No hay ingresos disponibles</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer">
+        <p><strong>Total de Ingresos:</strong> @ListIngresos.Count</p>
+    </div>
+</div>
+
+@code {
+    private List<Ingresos> ListIngresos { get; set; } = new();
+    private string filtro = "";
+    private string valorFiltro = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        ListIngresos = await ingresoService.Listar(i => true);
+    }
+
+    private async Task Buscar()
+    {
+        if (!string.IsNullOrWhiteSpace(valorFiltro))
+        {
+            if (filtro == "Id" && int.TryParse(valorFiltro, out int ingresoId))
+            {
+                ListIngresos = await ingresoService.Listar(i => i.IngresoId == ingresoId);
+            }
+            else if (filtro == "Tipo")
+            {
+                ListIngresos = await ingresoService.Listar(i => i.Tipo.ToLower().Contains(valorFiltro.ToLower()));
+            }
+        }
+        else
+        {
+            ListIngresos = await ingresoService.Listar(i => true);
+        }
+    }
+
+    private void Crear()
+    {
+        navigation.NavigateTo("/ingresos/create");
+    }
+
+    private void Editar(int id)
+    {
+        navigation.NavigateTo($"/ingresos/edit/{id}");
+    }
+
+    private void Eliminar(int id)
+    {
+        navigation.NavigateTo($"/ingresos/delete/{id}");
+    }
+}

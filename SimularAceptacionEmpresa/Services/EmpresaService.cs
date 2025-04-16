@@ -14,6 +14,10 @@ namespace SimularAceptacionEmpresa.Service
             _contexto = contexto;
         }
 
+        public async Task<bool> Existe(int EmpresaId, string? Nombre)
+        {
+            return await _contexto.Empresas.AnyAsync(e => e.EmpresaId != EmpresaId && e.Nombre.Equals(Nombre));
+        }
         public async Task<bool> Existe(int EmpresaId)
         {
             return await _contexto.Empresas.AnyAsync(e => e.EmpresaId == EmpresaId);

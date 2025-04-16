@@ -1,18 +1,20 @@
 using SimularAceptacionEmpresa.Components;
 using SimularAceptacionEmpresa.DAL;
-using SimularAceptacionEmpresa.Models;
 using Microsoft.EntityFrameworkCore;
+using SimularAceptacionEmpresa.Service;
+using SimularAceptacionEmpresa.Models;
+using SimularAceptacionEmpresa.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 
 var ConStr = builder.Configuration.GetConnectionString("ConStr");
 builder.Services.AddDbContext<Contexto>(options => options.UseSqlite(ConStr));
-//builder.Services.AddScoped<>();
-//builder.Services.AddScoped<>();
-//builder.Services.AddScoped<>();
-//builder.Services.AddScoped<>();
-//builder.Services.AddScoped<>();
+builder.Services.AddScoped<RecursoService>();
+builder.Services.AddScoped<ActividadService>();
+builder.Services.AddScoped<IngresoService>();
+builder.Services.AddScoped<PreguntaService>();
+builder.Services.AddScoped<EmpresaService>();
 //builder.Services.AddScoped<>();
 
 // Add services to the container.
