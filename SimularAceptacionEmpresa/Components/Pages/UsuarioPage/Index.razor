@@ -1,0 +1,54 @@
+﻿@page "/usuarios/index"
+@inject UsuarioService UsuarioService
+@rendermode InteractiveServer
+@inject NavigationManager NavigationManager
+
+<h3 class="d-flex justify-content-between align-items-center">
+    Lista de Usuarios
+    <button class="btn btn-success" @onclick="IrACrearUsuario">
+        <i class="bi bi-plus-circle me-1"></i> Crear
+    </button>
+</h3>
+
+@if (usuarios == null)
+{
+    <p><em>Cargando usuarios...</em></p>
+}
+else if (usuarios.Count == 0)
+{
+    <p>No hay usuarios registrados.</p>
+}
+else
+{
+    <div class="row">
+        @foreach (var usuario in usuarios)
+        {
+            <div class="col-md-4 mb-3">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">@usuario.Nombre</h5>
+                        <p class="card-text">
+                            <strong>ID:</strong> @usuario.UsuarioId<br />
+                            <strong>Detalles:</strong> @(usuario.UsuariosDetalle?.Count ?? 0)
+                        </p>
+                        <a class="btn btn-primary" href="/usuarios/crear/@usuario.UsuarioId">Ver Detalles</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private List<Usuario>? usuarios;
+
+    protected override async Task OnInitializedAsync()
+    {
+        usuarios = await UsuarioService.Listar(u => true);
+    }
+
+    private void IrACrearUsuario()
+    {
+        NavigationManager.NavigateTo("/usuarios/crear");
+    }
+}

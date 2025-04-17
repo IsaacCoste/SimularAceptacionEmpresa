@@ -32,7 +32,7 @@
             <div class="row mt-3">
                 <div class="col-md">
                     <label>Valoración:</label>
-                    <InputNumber @bind-Value="Actividad.valoracion" class="form-control" />
+                    <InputNumber min="1" max="10"@bind-Value="Actividad.valoracion" class="form-control" />
                     <ValidationMessage For="@(() => Actividad.valoracion)" />
                 </div>
             </div>

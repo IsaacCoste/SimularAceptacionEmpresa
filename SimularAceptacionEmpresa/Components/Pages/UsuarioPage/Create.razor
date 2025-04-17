@@ -1,0 +1,92 @@
+﻿@page "/usuarios/crear"
+@inject UsuarioService UsuarioService
+@inject PreguntaService PreguntaService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<h3>Nuevo Usuario</h3>
+
+<EditForm Model="@usuario" OnValidSubmit="GuardarUsuario" FormName="CrearUsuarioForm">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label class="form-label">Nombre</label>
+        <InputText class="form-control" @bind-Value="usuario.Nombre" />
+    </div>
+
+    <h5>Responde las siguientes preguntas:</h5>
+    @if (respuestasSeleccionadas.Any())
+    {
+        @foreach (var respuesta in respuestasSeleccionadas)
+        {
+            <div class="mb-3">
+                <label class="form-label">@respuesta.PreguntaTexto</label>
+                <InputSelect class="form-select" @bind-Value="respuesta.PreguntaDetalleIdSeleccionado">
+                    <option value="">Seleccione una respuesta</option>
+                    @foreach (var detalle in respuesta.Detalles)
+                    {
+                        <option value="@detalle.PreguntaDetalleId">
+                            @detalle.Respuesta (@detalle.Valoracion)
+                        </option>
+                    }
+                </InputSelect>
+            </div>
+        }
+    }
+    else
+    {
+        <p>Cargando preguntas...</p>
+    }
+
+    <button type="submit" class="btn btn-primary">Guardar</button>
+</EditForm>
+
+@code {
+    [Parameter]
+    public int UsuarioId { get; set; }
+    private Usuario usuario = new();
+    private List<Usuario> ListUsuarios { get; set; } = new List<Usuario>();
+    private List<RespuestaSeleccionada> respuestasSeleccionadas { get; set; } = new List<RespuestaSeleccionada>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // usuario.UsuarioId = UsuarioId;
+        // usuario = await UsuarioService.Buscar(usuario.UsuarioId);
+        // ListUsuarios = await UsuarioService.Listar(u => true);
+        
+        var preguntas = await PreguntaService.Listar(p => true);
+
+        respuestasSeleccionadas = preguntas.Select(p => new RespuestaSeleccionada
+            {
+                PreguntaId = p.PreguntaId,
+                PreguntaTexto = p.Texto,
+                Detalles = p.PreguntasDetalle.ToList()
+            }).ToList();
+    }
+
+    private async Task GuardarUsuario()
+    {
+        usuario.UsuariosDetalle = respuestasSeleccionadas
+            .Where(r => r.PreguntaDetalleIdSeleccionado != null)
+            .Select(r => new UsuariosDetalle
+                {
+                    PreguntaId = r.PreguntaId,
+                    PreguntaDetalleId = r.PreguntaDetalleIdSeleccionado!.Value
+                }).ToList();
+
+        var guardado = await UsuarioService.Guardar(usuario);
+
+        if (guardado)
+            Navigation.NavigateTo("/usuarios/index");
+    }
+
+    private class RespuestaSeleccionada
+    {
+
+        public int PreguntaId { get; set; }
+        public string PreguntaTexto { get; set; } = string.Empty;
+        public List<PreguntasDetalle> Detalles { get; set; } = new();
+        public int? PreguntaDetalleIdSeleccionado { get; set; }
+    }
+}

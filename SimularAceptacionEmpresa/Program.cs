@@ -15,6 +15,7 @@ builder.Services.AddScoped<ActividadService>();
 builder.Services.AddScoped<IngresoService>();
 builder.Services.AddScoped<PreguntaService>();
 builder.Services.AddScoped<EmpresaService>();
+builder.Services.AddScoped<UsuarioService>();
 //builder.Services.AddScoped<>();
 
 // Add services to the container.
